@@ -1,0 +1,35 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Banking Query Router</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--tx:#14181f;--mut:#5b6573;--bd:#dfe3e8;--ok:#127a3d;--okbg:#e4f5ea;--warn:#9a5b00;--warnbg:#fff1d6;--bar:#3b6fd4}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1318;--card:#171c23;--tx:#e8ecf1;--mut:#9aa5b3;--bd:#2a323d;--ok:#5fd18a;--okbg:#13301f;--warn:#f0b455;--warnbg:#3a2a0c;--bar:#6c9cf5}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,Segoe UI,Roboto,sans-serif}
+main{max-width:760px;margin:0 auto;padding:24px 16px 48px}h1{font-size:22px;margin:0 0 4px}p.sub{color:var(--mut);margin:0 0 18px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:14px}
+textarea{width:100%;min-height:90px;border:1px solid var(--bd);border-radius:8px;padding:10px;font:inherit;background:var(--bg);color:var(--tx);resize:vertical}
+button{background:var(--bar);color:#fff;border:0;border-radius:8px;padding:9px 16px;font:inherit;font-weight:600;cursor:pointer}button:disabled{opacity:.5}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0}.chip{border:1px solid var(--bd);background:var(--bg);color:var(--mut);border-radius:999px;padding:4px 10px;font-size:13px;cursor:pointer}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-weight:700;font-size:13px}.auto{background:var(--okbg);color:var(--ok)}.human{background:var(--warnbg);color:var(--warn)}
+.row{display:flex;align-items:center;gap:10px;margin:6px 0;font-size:14px}.row .n{width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.track{flex:1;height:8px;background:var(--bd);border-radius:6px;overflow:hidden}.fill{height:100%;background:var(--bar)}
+.meta{color:var(--mut);font-size:13px;margin-top:8px}.reply{white-space:pre-wrap;border-left:3px solid var(--bar);padding-left:12px;margin-top:6px}
+</style></head><body><main>
+<h1>Banking Query Router</h1><p class="sub">Task 1 intent model (77 intents) behind a REST API, with PII redaction and optional LLM reply drafting.</p>
+<div class="card"><textarea id="t" placeholder="Type a customer message..."></textarea>
+<div style="margin-top:10px;display:flex;gap:10px;align-items:center"><button id="go">Route it</button><label style="color:var(--mut);font-size:14px"><input type="checkbox" id="dr" checked> draft reply</label></div>
+<div class="chips" id="chips"></div></div>
+<div id="out"></div>
+<script>
+const ex=["my card has not arrived yet","why was I charged twice for the same payment?","my card 4539 1488 0343 6467 was declined, email me at jo@mail.com","what's the weather like tomorrow","hello"];
+const $=id=>document.getElementById(id);
+ex.forEach(e=>{const c=document.createElement("span");c.className="chip";c.textContent=e.length>38?e.slice(0,38)+"...":e;c.onclick=()=>{$("t").value=e};$("chips").appendChild(c)});
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+$("go").onclick=async()=>{const text=$("t").value.trim();if(!text)return;$("go").disabled=true;
+ try{const r=await fetch("/v1/route",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text,draft_reply:$("dr").checked})});
+ const d=await r.json();if(!r.ok){$("out").innerHTML='<div class="card">Error: '+esc(JSON.stringify(d.detail))+'</div>';return}
+ const auto=d.decision==="AUTO_ROUTE";
+ $("out").innerHTML='<div class="card"><span class="badge '+(auto?"auto":"human")+'">'+(auto?"AUTO ROUTE":"HUMAN REVIEW")+'</span> <b style="margin-left:8px">'+esc(d.intent.replace(/_/g," "))+'</b> <span style="color:var(--mut)">('+(d.confidence*100).toFixed(1)+'%)</span>'+
+ d.top_k.map(k=>'<div class="row"><span class="n">'+esc(k.intent)+'</span><div class="track"><div class="fill" style="width:'+k.confidence*100+'%"></div></div><span>'+(k.confidence*100).toFixed(1)+'%</span></div>').join("")+
+ '<div class="meta">PII redacted: '+(d.pii_redacted.length?esc(d.pii_redacted.join(", ")):"none")+' · '+d.latency_ms+' ms · '+esc(d.model_version)+'</div></div>'+
+ (d.reply?'<div class="card"><b>Drafted reply</b> <span class="meta">('+(d.reply.mode==="gemini"?"Gemini: "+esc(d.reply.model):"template, offline mode"+(d.reply.llm_error?" - Gemini unavailable ("+esc(d.reply.llm_error)+")":""))+')</span><div class="reply">'+esc(d.reply.text)+'</div></div>':"");
+ }catch(e){$("out").innerHTML='<div class="card">Request failed: '+esc(String(e))+'</div>'}finally{$("go").disabled=false}};
+</script></main></body></html>

@@ -1,0 +1,160 @@
+{
+  "n_train": 8002,
+  "n_val": 2001,
+  "n_test": 3080,
+  "n_classes": 77,
+  "model_selection_val": {
+    "majority_baseline": {
+      "val_acc": 0.019,
+      "val_macro_f1": 0.0005,
+      "fit_sec": 0.6
+    },
+    "tfidf_word+LogReg": {
+      "val_acc": 0.8811,
+      "val_macro_f1": 0.8831,
+      "fit_sec": 38.1
+    },
+    "tfidf_word+LinearSVC": {
+      "val_acc": 0.8831,
+      "val_macro_f1": 0.8842,
+      "fit_sec": 1.9
+    },
+    "tfidf_word+char+LinearSVC": {
+      "val_acc": 0.9075,
+      "val_macro_f1": 0.907,
+      "fit_sec": 6.7
+    }
+  },
+  "selected_model": "tfidf_word+char+LinearSVC",
+  "calibration": {
+    "temperature": 0.1865,
+    "ece_before": 0.8067,
+    "ece_after": 0.0244
+  },
+  "threshold_chosen_on_val": 0.82,
+  "learning_curve": [
+    {
+      "train_frac": 0.1,
+      "n": 800,
+      "val_acc": 0.6877
+    },
+    {
+      "train_frac": 0.25,
+      "n": 2000,
+      "val_acc": 0.8081
+    },
+    {
+      "train_frac": 0.5,
+      "n": 4001,
+      "val_acc": 0.8696
+    },
+    {
+      "train_frac": 0.75,
+      "n": 6002,
+      "val_acc": 0.8941
+    },
+    {
+      "train_frac": 1.0,
+      "n": 8002,
+      "val_acc": 0.9075
+    }
+  ],
+  "test": {
+    "accuracy": 0.9091,
+    "macro_f1": 0.9091,
+    "ece": 0.0233,
+    "auto_route_coverage": 0.8448,
+    "auto_route_precision": 0.9666,
+    "human_review_rate": 0.1552,
+    "latency_ms_per_query": 2.09
+  },
+  "worst_5_intents": {
+    "top_up_failed": {
+      "precision": 0.75,
+      "recall": 0.75,
+      "f1-score": 0.75
+    },
+    "balance_not_updated_after_bank_transfer": {
+      "precision": 0.775,
+      "recall": 0.775,
+      "f1-score": 0.775
+    },
+    "pending_transfer": {
+      "precision": 0.762,
+      "recall": 0.8,
+      "f1-score": 0.78
+    },
+    "card_not_working": {
+      "precision": 0.745,
+      "recall": 0.875,
+      "f1-score": 0.805
+    },
+    "failed_transfer": {
+      "precision": 0.773,
+      "recall": 0.85,
+      "f1-score": 0.81
+    }
+  },
+  "top_confusions": [
+    {
+      "true": "top_up_failed",
+      "pred": "top_up_reverted",
+      "count": 5
+    },
+    {
+      "true": "fiat_currency_support",
+      "pred": "exchange_via_app",
+      "count": 4
+    },
+    {
+      "true": "why_verify_identity",
+      "pred": "unable_to_verify_identity",
+      "count": 4
+    },
+    {
+      "true": "change_pin",
+      "pred": "get_physical_card",
+      "count": 4
+    },
+    {
+      "true": "balance_not_updated_after_bank_transfer",
+      "pred": "transfer_not_received_by_recipient",
+      "count": 4
+    },
+    {
+      "true": "card_arrival",
+      "pred": "card_delivery_estimate",
+      "count": 3
+    },
+    {
+      "true": "card_payment_wrong_exchange_rate",
+      "pred": "wrong_exchange_rate_for_cash_withdrawal",
+      "count": 3
+    },
+    {
+      "true": "pin_blocked",
+      "pred": "card_not_working",
+      "count": 3
+    },
+    {
+      "true": "pending_top_up",
+      "pred": "top_up_failed",
+      "count": 3
+    },
+    {
+      "true": "card_acceptance",
+      "pred": "card_not_working",
+      "count": 3
+    }
+  ],
+  "robustness_typo_acc": {
+    "0": 0.9091,
+    "0.03": 0.8935,
+    "0.06": 0.8766,
+    "0.1": 0.8601
+  },
+  "out_of_scope": {
+    "n": 25,
+    "rejected_to_human_rate": 0.88
+  }
+}
