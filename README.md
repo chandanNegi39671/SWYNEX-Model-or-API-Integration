@@ -44,8 +44,17 @@ CLI without a server: `python -m app.cli "my card has not arrived yet"`
 copy .env.example .env      # then paste your key into .env   (never commit .env: it is git-ignored)
 # or set it for the session:   $env:GEMINI_API_KEY="your key"
 ```
-`GET /health` then shows `"llm_enabled": true` and replies come back with `"mode": "gemini"`. The model name is configurable with `GEMINI_MODEL` (default `gemini-3.5-flash`). The default is a supported stable Gemini API model; change it only to a model available to your account.
+`GET /health` then shows `"llm_enabled": true` and replies come back with `"mode": "gemini"`. The model name is configurable with `GEMINI_MODEL` (default `gemini-2.5-flash`). The default is a supported stable Gemini API model; change it only to a model available to your account.
 The app loads `.env` from the project root automatically (via `python-dotenv`); real environment variables take precedence over `.env`. Restart `uvicorn` after editing `.env`.
+
+Gemini output is accepted only when a candidate is present, its finish reason is
+`STOP`, and the text is non-empty and complete. A response ending in
+punctuation is still rejected when its finish reason is `MAX_TOKENS` (or when
+the candidate is blocked). HTTP 429, timeout, and transient 5xx failures are
+retried at most once with bounded jittered backoff; permanent client errors and
+invalid generations use the deterministic template immediately. Retry and
+generation diagnostics log only model, attempt, status/category, finish reason,
+usage counts, and delay metadata.
 
 ## 3. API reference
 | Method | Path | Purpose |
